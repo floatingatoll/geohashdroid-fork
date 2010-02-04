@@ -544,7 +544,7 @@ public class MainMap extends MapActivity {
         globalMarker.setBounds(0, 0, globalMarker.getIntrinsicWidth(),
                 globalMarker.getIntrinsicHeight());
         
-        // Make an offset graticule and get some info from it.
+        // Make a globalhash graticule and get some info from it.
         Graticule globalhash = Graticule.createGlobalhash();
         Info inf = HashBuilder.getStoredInfo(this, mInfo.getCalendar(), globalhash);
         
@@ -601,6 +601,31 @@ public class MainMap extends MapActivity {
         }
     }
     
+    private void resumeGlobalPoint() {
+        // This is called after addGlobalPoint fails once due to not having a
+        // stock value ready.
+        List<Overlay> overlays = mMapView.getOverlays();
+        
+        Drawable globalMarker = getResources().getDrawable(
+                R.drawable.final_destination_disabled);
+        globalMarker.setBounds(0, 0, globalMarker.getIntrinsicWidth(),
+                globalMarker.getIntrinsicHeight());
+        
+        // Make an offset graticule and get some info from it.
+        Graticule globalhash = Graticule.createOffsetFrom(mGraticule, mNextNearbyY, mNextNearbyX);
+        Info inf = HashBuilder.getStoredInfo(this, mInfo.getCalendar(), globalhash);
+        
+        if(inf == null) {
+            // If this comes up twice, this is impossible.  This means
+            // the cache is bad somehow, so we're bailing out now.
+            Log.e(DEBUG_TAG, "HEY!  HashBuilder returned null info when making the global overlay TWICE!  What?");
+            return;
+        }
+        
+        // Then, make us a disabled destination...
+        overlays.add(new FinalDestinationDisabledOverlay(globalMarker, inf, this));
+    }
+    
     private void resumeNearbyPoints() {
         // This is called after addNearbyPoints fails once due to not having a
         // stock value ready.
@@ -642,6 +667,23 @@ public class MainMap extends MapActivity {
         }
     }
     
+    private void removeGlobalPoint() {
+        List<Overlay> overlays = mMapView.getOverlays();
+        
+        List<Overlay> toRemove = new LinkedList<Overlay>();
+        // Iterate the list and remove any FinalDestinationDisabledGlobalhashOverlays.
+        for(Overlay o : overlays) {
+            if(o instanceof FinalDestinationDisabledGlobalhashOverlay)
+                toRemove.add(o);
+        }
+        
+        // Now, if we found anything, yoink 'em.
+        if(!toRemove.isEmpty()) {
+            for(Overlay o : toRemove)
+                overlays.remove(o);
+        }
+    }
+
     private void removeNearbyPoints() {
         List<Overlay> overlays = mMapView.getOverlays();
         
@@ -1156,6 +1198,7 @@ public class MainMap extends MapActivity {
         // With that said...
 
         // Step One:
+        removeGlobalPoint();
         removeNearbyPoints();
         removeFinalDestination();
 
@@ -1165,10 +1208,10 @@ public class MainMap extends MapActivity {
         // Step Three:
         addFinalDestination();
 
-        // Nearby points should always be on as per this writing, as that's the
-        // only way this will get triggered.  But, just to be safe and somewhat
-        // future-proof...
+        // Figure out which overlays the user has asked us to draw.
         SharedPreferences prefs = getSharedPreferences(GHDConstants.PREFS_BASE, 0);
+        boolean globalOn = prefs.getBoolean(GHDConstants.PREF_GLOBAL_POINT, true);
+        if(globalOn) addGlobalPoint();
         boolean nearbyOn = prefs.getBoolean(GHDConstants.PREF_NEARBY_POINTS, false);
         if(nearbyOn) addNearbyPoints();
 
