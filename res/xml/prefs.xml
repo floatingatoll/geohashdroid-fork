@@ -17,6 +17,9 @@
 			android:persistent="true" android:entries="@array/pref_coordunits_entries"
 			android:entryValues="@array/pref_coordunits_values"
 			android:dialogTitle="@string/pref_coordunits_dialogtitle" />
+		<CheckBoxPreference android:key="GlobalhashPoint"
+			android:title="@string/pref_globalhash_title" android:defaultValue="true"
+			android:persistent="true" android:summaryOff="@string/pref_globalhash_off" android:summaryOn="@string/pref_globalhash_on"/>
 		<CheckBoxPreference android:key="NearbyPoints"
 			android:title="@string/pref_nearbypoints_title" android:defaultValue="false"
 			android:persistent="true" android:summaryOff="@string/pref_nearbypoints_off" android:summaryOn="@string/pref_nearbypoints_on"/>

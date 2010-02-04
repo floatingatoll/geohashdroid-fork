@@ -36,6 +36,8 @@ public final class GHDConstants {
     public static final String PREF_INFOBOX_SIZE = "InfoBoxSize";
     /** Prefs key specifying stock cache size. */
     public static final String PREF_STOCK_CACHE_SIZE = "StockCacheSize";
+    /** Prefs key specifying to show the globalhash meetup point. */
+    public static final String PREF_GLOBALHASH_POINT = "GlobalhashPoint";
     /** Prefs key specifying to show nearby meetup points. */
     public static final String PREF_NEARBY_POINTS = "NearbyPoints";
     /** Prefs key specifying whether the closest checkbox is ticked. */

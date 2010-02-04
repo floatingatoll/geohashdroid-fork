@@ -58,6 +58,10 @@ in a bit better grammatically (at least in English).
 <string name="autozoom_turned_off">Automatic zooming turned off</string>
 <string name="autozoom_turned_on">Automatic zooming turned on</string>
 
+<string name="pref_globalhash_title">Show the globalhash point</string>
+<string name="pref_globalhash_on">Show the globalhash point on the map as well.</string>
+<string name="pref_globalhash_off">Hide the globalhash point.</string>
+
 <string name="pref_autozoom_title">Auto-zoom</string>
 <string name="pref_autozoom_on">Automatically zoom as you move (manual zooming overrides this)</string>
 <string name="pref_autozoom_off">Only zoom manually</string>

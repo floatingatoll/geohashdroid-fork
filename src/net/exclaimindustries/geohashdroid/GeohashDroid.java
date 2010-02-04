@@ -230,6 +230,13 @@ public class GeohashDroid extends Activity {
             toReturn = true;
         }
         
+        // Globalhash points defaults to on (it only makes one new overlay
+        // transparency, if you're very lucky to be near it.
+        if(!prefs.contains(GHDConstants.PREF_GLOBALHASH_POINT)) {
+            editor.putBoolean(GHDConstants.PREF_GLOBALHASH_POINT, true);
+            toReturn = true;
+        }
+
         // Nearby points defaults to off (it makes eight new overlays with
         // transparencies, it can be a bit hefty on the processor)
         if(!prefs.contains(GHDConstants.PREF_NEARBY_POINTS)) {
