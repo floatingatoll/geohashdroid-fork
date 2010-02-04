@@ -104,6 +104,10 @@ public class MainMap extends MapActivity {
     // The menu we're holding on to to disable
     private Menu mMenu;
     
+    // Whatever the last state of the Global Point preference was.  This is
+    // mostly for efficiency; we only need to act if this changed.
+    private boolean mGlobalOn;
+    
     // Whatever the last state of the Nearby Points preference was.  This is
     // mostly for efficiency; we only need to act if this changed.
     private boolean mNearbyOn;
@@ -124,6 +128,7 @@ public class MainMap extends MapActivity {
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         
+        mGlobalOn = true;
         mNearbyOn = false;
         mResumeFlags = false;
 
@@ -314,19 +319,35 @@ public class MainMap extends MapActivity {
         // Now, bring in the nearby points, if needed.  If not needed, remove
         // them.  Only do either if it changed since last time we saw them.
         boolean nearbyOn = prefs.getBoolean(GHDConstants.PREF_NEARBY_POINTS, false);
+        boolean globalOn = prefs.getBoolean(GHDConstants.PREF_GLOBALHASH_POINT, true);
         
-        if(mResumeFlags && nearbyOn)
+        if(mResumeFlags && (globalOn || nearbyOn))
         {
             // If we're coming back from stock grabbing, plant 'em.
             mResumeFlags = false;
-            resumeNearbyPoints();
-        } else if(nearbyOn != mNearbyOn) {
-            // Otherwise, if the preference changed, alter the map.
-            if(nearbyOn)
-                addNearbyPoints();
-            else
-                removeNearbyPoints();
-            mNearbyOn = nearbyOn;
+            if(globalOn) {
+                resumeGlobalPoint();
+            }
+            if(nearbyOn) {
+                resumeNearbyPoints();
+            }
+        } else {
+            if(globalOn != mGlobalOn) {
+                // Otherwise, if the preference changed, alter the map.
+                if(globalOn)
+                    addGlobalPoint();
+                else
+                    removeGlobalPoint();
+                mGlobalOn = globalOn;
+            }
+            if(nearbyOn != mNearbyOn) {
+                // Otherwise, if the preference changed, alter the map.
+                if(nearbyOn)
+                    addNearbyPoints();
+                else
+                    removeNearbyPoints();
+                mNearbyOn = nearbyOn;
+            }
         }
 
         // MyLocationOverlay comes right back on.
@@ -513,6 +534,32 @@ public class MainMap extends MapActivity {
             for(Overlay o : toRemove)
                 overlays.remove(o);
         }
+    }
+    
+    private void addGlobalPoint() {
+        List<Overlay> overlays = mMapView.getOverlays();
+        
+        Drawable globalMarker = getResources().getDrawable(
+                R.drawable.final_destination_disabled);
+        globalMarker.setBounds(0, 0, globalMarker.getIntrinsicWidth(),
+                globalMarker.getIntrinsicHeight());
+        
+        // Make an offset graticule and get some info from it.
+        Graticule globalhash = Graticule.createGlobalhash();
+        Info inf = HashBuilder.getStoredInfo(this, mInfo.getCalendar(), globalhash);
+        
+        if(inf == null) {
+            Log.d(DEBUG_TAG, "HashBuilder returned null info when making the global overlay, trying to get new data...");
+            // Fire off the new activity.
+            Intent in = new Intent(MainMap.this, StockGrabber.class);
+            in.putExtra(GeohashDroid.GRATICULE, globalhash);
+            in.putExtra(GeohashDroid.CALENDAR, mInfo.getCalendar());
+            startActivityForResult(in, REQUEST_STOCK);
+            return;
+        }
+        
+        // Then, make us a disabled destination...
+        overlays.add(new FinalDestinationDisabledOverlay(globalMarker, inf, this));
     }
     
     private void addNearbyPoints() {
